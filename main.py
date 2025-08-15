@@ -4,7 +4,6 @@ import numpy as np
 import pyautogui
 import time
 
-# Initialize MediaPipe and OpenCV utilities
 mpHands = mp.solutions.hands
 hands = mpHands.Hands(min_detection_confidence=0.7, min_tracking_confidence=0.7)
 mpDraw = mp.solutions.drawing_utils
@@ -13,7 +12,6 @@ screen_w, screen_h = pyautogui.size()
 cap = cv2.VideoCapture(0)
 cv2.namedWindow("Gesture Mouse", cv2.WINDOW_NORMAL)
 
-# Parameters for controlling actions
 last_click_time = 0
 click_cooldown = 0.3
 prev_x, prev_y = 0, 0
@@ -47,7 +45,6 @@ while True:
     h, w, _ = img.shape
     handedness_map = {}
 
-    # Hand detection and landmark extraction
     if results.multi_hand_landmarks and results.multi_handedness:
         for idx, (hand_landmark, hand_handedness) in enumerate(
             zip(results.multi_hand_landmarks, results.multi_handedness)
@@ -61,11 +58,9 @@ while True:
 
     num_hands = len(handedness_map)
 
-    # Mouse control when only the right hand is present
     if num_hands == 1 and 'Right' in handedness_map:
         lmDict_right = handedness_map['Right']
 
-        # Smooth mouse movements
         if 8 in lmDict_right:
             x, y = lmDict_right[8]
             screen_x = interpolate(x, [0, w], [0, screen_w])
@@ -77,7 +72,6 @@ while True:
                 cv2.putText(img, f'Mouse Moving', (10, 70), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 0), 2)
             prev_x, prev_y = smooth_x, smooth_y
 
-        # Mouse click
         if 4 in lmDict_right and 8 in lmDict_right:
             x1, y1 = lmDict_right[4]
             x2, y2 = lmDict_right[8]
@@ -88,7 +82,6 @@ while True:
                     last_click_time = time.time()
                     cv2.putText(img, 'Mouse Clicked!', (10, 100), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 0), 2)
 
-    # Zoom control with both hands
     if num_hands == 2:
         if 'Right' in handedness_map and 'Left' in handedness_map:
             lmDict_left = handedness_map['Left']
@@ -118,7 +111,6 @@ while True:
 
                 last_zoom = zoom_value
 
-    # Scrolling when only the left hand is present
     if num_hands == 1 and 'Left' in handedness_map:
         lmDict_left = handedness_map['Left']
 
@@ -134,7 +126,6 @@ while True:
                     scroll_last_time = current_time
                     cv2.putText(img, f'Scrolling: {delta_scroll}', (10, 130), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 0, 255), 2)
 
-    # Draw guide line and show FPS
     cv2.line(img, (0, scroll_center_y), (w, scroll_center_y), (0, 255, 0), 2)
     c_time = time.time()
     fps = 1 / (c_time - p_time)
@@ -148,3 +139,4 @@ while True:
 
 cap.release()
 cv2.destroyAllWindows()
+
